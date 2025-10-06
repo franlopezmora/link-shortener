@@ -16,8 +16,7 @@ export default async function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="space-y-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
           <div className="flex items-center justify-between">
@@ -110,7 +109,6 @@ export default async function Dashboard() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }

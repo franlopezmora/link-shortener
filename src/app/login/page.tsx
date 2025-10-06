@@ -12,7 +12,7 @@ export default function Login() {
   }, [status, router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
           <div className="text-center mb-8">
