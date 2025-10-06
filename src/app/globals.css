@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset básico para asegurar que Tailwind funcione */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 dialog::backdrop { 
   background: rgba(0,0,0,.4); 
 }
