@@ -9,9 +9,6 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "database" }, // o "jwt"
   pages: { signIn: "/login", error: "/login" },
 
-  // 👇 habilita linkeo por email entre providers confiables
-  allowDangerousEmailAccountLinking: true,
-
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
