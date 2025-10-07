@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 interface QRModalProps {
   open: boolean;
@@ -78,9 +79,11 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
                 </div>
               ) : (
-                <img 
+                <Image 
                   src={qrUrl} 
                   alt={`Código QR para ${slug}`}
+                  width={256}
+                  height={256}
                   className="w-64 h-64"
                 />
               )}

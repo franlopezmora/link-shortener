@@ -28,8 +28,9 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
       if (!res.ok) throw new Error("No se pudo eliminar");
       toast("Link eliminado", "Listo");
       router.refresh();
-    } catch (e: any) {
-      toast(e.message ?? "Error eliminando el link", "Error");
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast(error.message ?? "Error eliminando el link", "Error");
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,7 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
 
     setLoading(true);
     try {
-      const body: any = {};
+      const body: { slug?: string; url?: string; expiresAt?: string | null } = {};
       if (formSlug !== slug) body.slug = formSlug;
       if (formUrl !== url) body.url = formUrl;
       if (formExpires !== (expiresAt ? new Date(expiresAt).toISOString().slice(0,16) : "")) {
@@ -67,8 +68,9 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
       } else {
         toast("Error guardando cambios", "Error");
       }
-    } catch (e: any) {
-      toast(e.message ?? "Error inesperado", "Error");
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast(error.message ?? "Error inesperado", "Error");
     } finally {
       setLoading(false);
     }

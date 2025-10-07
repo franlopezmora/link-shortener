@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   
   const existing = await prisma.link.findUnique({ where: { id } });
   const body = await req.json()
-  const data: any = {}
+  const data: { url?: string; slug?: string; expiresAt?: Date | null } = {}
   
   if (body.url) {
     if (!isValidUrl(body.url)) return new Response("URL inválida", { status: 400 })

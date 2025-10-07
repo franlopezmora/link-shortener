@@ -42,8 +42,9 @@ export default function CreateLinkForm() {
       } else {
         toast(await res.text() || "Error al crear", "Error");
       }
-    } catch (e: any) {
-      toast(e.message ?? "Error inesperado", "Error");
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast(error.message ?? "Error inesperado", "Error");
     } finally {
       setLoading(false);
     }

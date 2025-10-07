@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import LinkRow from "@/components/LinkRow";
 import CreateLinkForm from "@/components/CreateLinkForm";
 import { redis, kVisits } from "@/lib/redis";
@@ -16,7 +15,7 @@ export default async function Dashboard() {
     orderBy: { createdAt: "desc" },
   });
 
-  const withLiveVisits = await Promise.all(
+  const linksWithLiveVisits = await Promise.all(
     links.map(async (l) => {
       const pending = Number(await redis.get(kVisits(l.slug))) || 0;
       return { ...l, visits: (l.visits ?? 0) + pending };
@@ -67,7 +66,7 @@ export default async function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-slate-600">Total Visitas</p>
                 <p className="text-2xl font-bold text-slate-900">
-                  {links.reduce((sum, link) => sum + (link.visits || 0), 0)}
+                  {linksWithLiveVisits.reduce((sum, link) => sum + (link.visits || 0), 0)}
                 </p>
               </div>
             </div>
@@ -111,7 +110,7 @@ export default async function Dashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {links.map((l) => (
+              {linksWithLiveVisits.map((l) => (
                 <LinkRow key={l.id} id={l.id} slug={l.slug} url={l.url} visits={l.visits} expiresAt={l.expiresAt} />
               ))}
             </div>

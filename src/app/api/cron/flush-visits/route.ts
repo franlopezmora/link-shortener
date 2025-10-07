@@ -6,7 +6,7 @@ export const maxDuration = 50;
 const BATCH = 500;
 
 export async function POST() {
-  const keys: string[] = (await redis.spop(K_VISITS_DIRTY, BATCH)) as any;
+  const keys: string[] = (await redis.spop(K_VISITS_DIRTY, BATCH)) as string[];
   if (!keys || keys.length === 0) return NextResponse.json({ processed: 0 });
 
   const tuples: { slug: string; count: number }[] = [];

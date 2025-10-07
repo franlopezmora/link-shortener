@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import QRModal from "./QRModal";
 
 function initialsOf(name?: string, email?: string) {
@@ -63,9 +64,11 @@ export default function UserMenu() {
         aria-expanded={open}
       >
         {user.image ? (
-          <img
+          <Image
             src={user.image}
             alt={user.name ?? "Avatar"}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover border border-slate-200"
             referrerPolicy="no-referrer"
           />
