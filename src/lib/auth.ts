@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
     },
     async linkAccount(message) {
       console.log("[next-auth] linkAccount event", {
-        provider: message?.provider,
+        provider: message?.account?.provider,
         userId: message?.user?.id,
       });
     },
