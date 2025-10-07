@@ -6,8 +6,11 @@ import { prisma } from "@/lib/prisma"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  session: { strategy: "database" }, // o "jwt"
   pages: { signIn: "/login", error: "/login" },
+
+  // 👇 habilita linkeo por email entre providers confiables
+  allowDangerousEmailAccountLinking: true,
 
   providers: [
     GoogleProvider({
@@ -17,23 +20,26 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      authorization: { params: { scope: "read:user user:email" } }, // pide emails privados también
+      authorization: { params: { scope: "read:user user:email" } }, // no agregues profile custom
     }),
   ],
 
-  callbacks: {
-    // (Opcional) si GitHub no trae email, mostramos error claro
-    async signIn({ account, profile }) {
-      if (account?.provider === "github") {
-        const email = (profile as { email?: string })?.email;
-        if (!email) return "/login?error=NoEmailFromGitHub";
-      }
-      return true;
+  // logs mínimos para ver qué devuelve GitHub (quitá luego)
+  events: {
+    async signIn(message) {
+      console.log("[next-auth] signIn event", {
+        provider: message?.account?.provider,
+        email: (message?.profile as any)?.email ?? null,
+      });
     },
-    async redirect({ baseUrl }) {
-      return `${baseUrl}/dashboard`;
+    async linkAccount(message) {
+      console.log("[next-auth] linkAccount event", {
+        provider: message?.provider,
+        userId: message?.user?.id,
+      });
+    },
+    async error(error) {
+      console.error("[next-auth] error", error);
     },
   },
-  
-  debug: process.env.NODE_ENV === "development", // solo debug en desarrollo
 }
