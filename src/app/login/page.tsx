@@ -1,15 +1,26 @@
 "use client"
 import { signIn, useSession } from "next-auth/react"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function Login() {
   const { status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/dashboard")
   }, [status, router])
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (errorParam === "NoEmailFromGitHub") {
+      setError("GitHub no proporcionó un email válido. Por favor, asegúrate de que tu email sea público en GitHub o usa Google para iniciar sesión.")
+    } else if (errorParam) {
+      setError("Hubo un error al iniciar sesión. Por favor, inténtalo de nuevo.")
+    }
+  }, [searchParams])
 
   return (
     <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -24,6 +35,20 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Link Shortener</h1>
             <p className="text-slate-600">Acorta tus enlaces de forma rápida y segura</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm text-red-800 font-medium">Error de autenticación</p>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4">
             <button
