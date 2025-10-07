@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import QRModal from "./QRModal";
 
 function initialsOf(name?: string, email?: string) {
   if (name?.trim()) {
@@ -14,6 +15,7 @@ function initialsOf(name?: string, email?: string) {
 export default function UserMenu() {
   const { data: session, status } = useSession(); // "loading" | "authenticated" | "unauthenticated"
   const [open, setOpen] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Cerrar al clickear afuera
@@ -118,12 +120,13 @@ export default function UserMenu() {
               Copiar dominio
             </div>
           </button>
-          <a
-            href="/api/qr/demo.svg"
-            target="_blank"
-            className="block px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors duration-200"
+          <button
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors duration-200"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setShowQR(true);
+              setOpen(false);
+            }}
           >
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +134,7 @@ export default function UserMenu() {
               </svg>
               Ejemplo QR
             </div>
-          </a>
+          </button>
           <div className="my-2 h-px bg-slate-100" />
           <button
             onClick={() => { setOpen(false); signOut({ callbackUrl: "/login" }); }}
@@ -147,6 +150,13 @@ export default function UserMenu() {
           </button>
         </div>
       )}
+      
+      <QRModal 
+        open={showQR} 
+        onClose={() => setShowQR(false)} 
+        slug="demo"
+        title="Ejemplo de código QR"
+      />
     </div>
   );
 }

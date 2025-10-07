@@ -9,8 +9,8 @@ function ttlFor(expiresAt?: Date | null) {
   return Math.max(60, Math.min(60 * 60 * 24, Math.floor(msLeft / 1000)));
 }
 
-export async function GET(_: Request, { params }: { params: { slug: string } }) {
-  const { slug } = params;
+export async function GET(_: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
 
   const link = await prisma.link.findUnique({ where: { slug } });
   if (!link) return NextResponse.json({ url: null }, { status: 404 });

@@ -12,11 +12,12 @@ async function isOwner(id: string, email?: string | null) {
   return user?.id === link.userId
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions)
-  if (!(await isOwner(params.id, session?.user?.email))) return new Response("Forbidden", { status: 403 })
+  if (!(await isOwner(id, session?.user?.email))) return new Response("Forbidden", { status: 403 })
   
-  const existing = await prisma.link.findUnique({ where: { id: params.id } });
+  const existing = await prisma.link.findUnique({ where: { id } });
   const body = await req.json()
   const data: any = {}
   
@@ -41,7 +42,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   
   try {
-    const updated = await prisma.link.update({ where: { id: params.id }, data })
+    const updated = await prisma.link.update({ where: { id }, data })
     
     // invalidar viejo y (si cambió) nuevo slug
     await Promise.all([
@@ -55,11 +56,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions)
-  if (!(await isOwner(params.id, session?.user?.email))) return new Response("Forbidden", { status: 403 })
+  if (!(await isOwner(id, session?.user?.email))) return new Response("Forbidden", { status: 403 })
   
-  const deleted = await prisma.link.delete({ where: { id: params.id } })
+  const deleted = await prisma.link.delete({ where: { id } })
   
   // invalidar cache
   await redis.del(kSlug(deleted.slug)).catch(()=>{});

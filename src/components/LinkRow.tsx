@@ -4,17 +4,21 @@ import { useToast } from "./Toaster";
 import { useRouter } from "next/navigation";
 import { isValidSlug, isValidUrl } from "@/lib/validators";
 import Modal from "./Modal";
+import QRModal from "./QRModal";
 
 type Props = { id: string; slug: string; url: string; visits?: number | null; expiresAt?: Date | null };
 
 export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props) {
   const [editing, setEditing] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const [formSlug, setFormSlug] = useState(slug);
   const [formUrl, setFormUrl] = useState(url);
   const [formExpires, setFormExpires] = useState<string>(expiresAt ? new Date(expiresAt).toISOString().slice(0,16) : "");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
+
+  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
 
   async function handleDelete() {
     if (!confirm("¿Eliminar link?")) return;
@@ -127,9 +131,8 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
             Copiar
           </button>
           
-          <a
-            href={`/api/qr/${encodeURIComponent(slug)}.svg`}
-            target="_blank"
+          <button
+            onClick={() => setShowQR(true)}
             className="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-1"
             title="Ver QR"
           >
@@ -137,7 +140,7 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
             QR
-          </a>
+          </button>
           
           <button 
             onClick={() => setEditing(true)} 
@@ -248,6 +251,13 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt }: Props)
           </div>
         </div>
       </Modal>
+
+      <QRModal 
+        open={showQR} 
+        onClose={() => setShowQR(false)} 
+        slug={slug}
+        title={`Código QR para /${slug}`}
+      />
     </div>
   );
 }

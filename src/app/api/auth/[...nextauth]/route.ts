@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
       return `${baseUrl}/dashboard`;
     },
   },
-  debug: true, // habilita logs útiles en consola
+  debug: process.env.NODE_ENV === "development", // solo debug en desarrollo
 }
 
 const handler = NextAuth(authOptions)
