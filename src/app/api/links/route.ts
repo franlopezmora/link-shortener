@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { isValidSlug, isValidUrl } from "@/lib/validators";
 import { redis, kSlug } from "@/lib/redis";
 
