@@ -17,6 +17,7 @@ export default function UserMenu() {
   const { data: session, status } = useSession(); // "loading" | "authenticated" | "unauthenticated"
   const [open, setOpen] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Cerrar al clickear afuera
@@ -63,7 +64,7 @@ export default function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {user.image ? (
+        {user.image && !imageError ? (
           <Image
             src={user.image}
             alt={user.name ?? "Avatar"}
@@ -71,6 +72,7 @@ export default function UserMenu() {
             height={32}
             className="w-8 h-8 rounded-full object-cover border border-slate-200"
             referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-8 h-8 rounded-full grid place-items-center bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700">
