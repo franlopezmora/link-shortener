@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ account, profile }) {
       if (account?.provider === "github") {
-        const email = (profile as any)?.email;
+        const email = (profile as { email?: string })?.email;
         if (!email) {
           // rechazá el login si no hay email (evita crear usuarios huérfanos)
           return "/login?error=NoEmailFromGitHub";
