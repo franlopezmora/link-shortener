@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import LinkRow from "@/components/LinkRow";
 import CreateLinkForm from "@/components/CreateLinkForm";
+import { redis, kVisits } from "@/lib/redis";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -14,6 +15,13 @@ export default async function Dashboard() {
     where: { user: { email: session.user.email } },
     orderBy: { createdAt: "desc" },
   });
+
+  const withLiveVisits = await Promise.all(
+    links.map(async (l) => {
+      const pending = Number(await redis.get(kVisits(l.slug))) || 0;
+      return { ...l, visits: (l.visits ?? 0) + pending };
+    })
+  );
 
   return (
     <div className="space-y-8">
