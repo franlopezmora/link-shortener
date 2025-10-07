@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
   ],
   
   callbacks: {
-    async signIn({ account, profile, user }) {
+    async signIn({ account, profile }) {
       // En NextAuth v4, el linkeo por email es automático cuando hay email coincidente
       if (account?.provider === "github") {
         const email = (profile as { email?: string })?.email;
