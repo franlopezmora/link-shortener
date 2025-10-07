@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
     async signIn(message) {
       console.log("[next-auth] signIn event", {
         provider: message?.account?.provider,
-        email: (message?.profile as any)?.email ?? null,
+        email: (message?.profile as { email?: string })?.email ?? null,
       });
     },
     async linkAccount(message) {
