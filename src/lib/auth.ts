@@ -38,8 +38,5 @@ export const authOptions: NextAuthOptions = {
         userId: message?.user?.id,
       });
     },
-    async error(error) {
-      console.error("[next-auth] error", error);
-    },
   },
 }
