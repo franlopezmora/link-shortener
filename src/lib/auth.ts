@@ -8,9 +8,6 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "database" },
   
-  // 👇 Permite linkear por email entre proveedores (útil para Google + GitHub)
-  allowDangerousEmailAccountLinking: true,
-  
   pages: { 
     signIn: "/login", 
     error: "/login" 
@@ -38,9 +35,9 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   
-  // (Opcional) endurecer: bloquear si GitHub no trae email
   callbacks: {
-    async signIn({ account, profile }) {
+    async signIn({ account, profile, user }) {
+      // En NextAuth v4, el linkeo por email es automático cuando hay email coincidente
       if (account?.provider === "github") {
         const email = (profile as { email?: string })?.email;
         if (!email) {
