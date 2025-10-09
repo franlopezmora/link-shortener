@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/Toaster";
 import { useRouter } from "next/navigation";
 import { Button, Input } from "@/components/common";
 import CreateTagModal from "@/components/modals/CreateTagModal";
+import EditTagModal from "@/components/modals/EditTagModal";
 import DeleteTagModal from "@/components/modals/DeleteTagModal";
 
 interface Tag {
@@ -19,20 +20,20 @@ interface TagsManagerProps {
 export default function TagsManager({ tags }: TagsManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showCreateTagModal, setShowCreateTagModal] = useState(false);
-  const [editingTag, setEditingTag] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [showEditTagModal, setShowEditTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<{ id: string; name: string } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const editingTagRef = useRef<string | null>(null);
+  const showEditTagModalRef = useRef<boolean>(false);
   const showDeleteModalRef = useRef<boolean>(false);
   const showCreateTagModalRef = useRef<boolean>(false);
   const toast = useToast();
   const router = useRouter();
 
   // Mantener refs actualizados
-  editingTagRef.current = editingTag;
+  showEditTagModalRef.current = showEditTagModal;
   showDeleteModalRef.current = showDeleteModal;
   showCreateTagModalRef.current = showCreateTagModal;
 
@@ -40,7 +41,7 @@ export default function TagsManager({ tags }: TagsManagerProps) {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // No cerrar si hay alguna operación en curso
-      if (editingTagRef.current || showDeleteModalRef.current || showCreateTagModalRef.current) {
+      if (showEditTagModalRef.current || showDeleteModalRef.current || showCreateTagModalRef.current) {
         console.log('Operación en curso, no cerrar dropdown');
         return;
       }
@@ -64,41 +65,8 @@ export default function TagsManager({ tags }: TagsManagerProps) {
 
   const handleEdit = (tag: Tag) => {
     console.log('Iniciando edición de etiqueta:', tag.name);
-    setEditingTag(tag.id);
-    setEditName(tag.name);
-  };
-
-  const handleSaveEdit = async (tagId: string) => {
-    if (!editName.trim()) {
-      toast("El nombre de la etiqueta es obligatorio", "Validación");
-      return;
-    }
-
-    setLoading(tagId);
-    try {
-      const res = await fetch(`/api/tags/${tagId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
-      });
-
-      if (res.ok) {
-        toast("Etiqueta actualizada", editName);
-        router.refresh();
-        setEditingTag(null);
-        setEditName("");
-        setIsOpen(false); // Cerrar dropdown después de editar exitosamente
-      } else if (res.status === 409) {
-        toast("Esa etiqueta ya existe", "Conflicto");
-      } else {
-        toast(await res.text() || "Error al actualizar etiqueta", "Error");
-      }
-    } catch (e: unknown) {
-      const error = e as Error;
-      toast(error.message ?? "Error inesperado", "Error");
-    } finally {
-      setLoading(null);
-    }
+    setEditingTag({ id: tag.id, name: tag.name });
+    setShowEditTagModal(true);
   };
 
   const handleDelete = (tagId: string, tagName: string) => {
@@ -121,7 +89,7 @@ export default function TagsManager({ tags }: TagsManagerProps) {
         router.refresh();
         setShowDeleteModal(false);
         setTagToDelete(null);
-        setIsOpen(false); // Cerrar dropdown después de eliminar exitosamente
+        // Mantener el dropdown abierto después de eliminar exitosamente
       } else {
         toast(await res.text() || "Error al eliminar etiqueta", "Error");
       }
@@ -133,10 +101,6 @@ export default function TagsManager({ tags }: TagsManagerProps) {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingTag(null);
-    setEditName("");
-  };
 
   return (
     <>
@@ -197,63 +161,31 @@ export default function TagsManager({ tags }: TagsManagerProps) {
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: tag.color || "#6366f1" }}
                         />
-                        {editingTag === tag.id ? (
-                          <Input
-                            value={editName}
-                            onChange={setEditName}
-                            className="flex-1 text-sm"
-                            autoFocus
-                          />
-                        ) : (
-                          <span className="font-medium text-slate-900 dark:text-slate-200 text-sm">{tag.name}</span>
-                        )}
+                        <span className="font-medium text-slate-900 dark:text-slate-200 text-sm">{tag.name}</span>
                       </div>
 
                       {/* Botones de acción */}
                       <div className="flex items-center gap-1">
-                        {editingTag === tag.id ? (
-                          <>
-                            <Button
-                              onClick={() => handleSaveEdit(tag.id)}
-                              disabled={loading === tag.id}
-                              loading={loading === tag.id}
-                              variant="primary"
-                              size="sm"
-                            >
-                              Guardar
-                            </Button>
-                            <Button
-                              onClick={handleCancelEdit}
-                              variant="secondary"
-                              size="sm"
-                            >
-                              Cancelar
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              onClick={() => handleEdit(tag)}
-                              variant="secondary"
-                              size="sm"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </Button>
-                            <Button
-                              onClick={() => handleDelete(tag.id, tag.name)}
-                              disabled={loading === tag.id}
-                              loading={loading === tag.id}
-                              variant="danger"
-                              size="sm"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </Button>
-                          </>
-                        )}
+                        <Button
+                          onClick={() => handleEdit(tag)}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(tag.id, tag.name)}
+                          disabled={loading === tag.id}
+                          loading={loading === tag.id}
+                          variant="danger"
+                          size="sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </Button>
                       </div>
                     </div>
                   ))
@@ -292,7 +224,26 @@ export default function TagsManager({ tags }: TagsManagerProps) {
       <CreateTagModal
         open={showCreateTagModal}
         onClose={() => setShowCreateTagModal(false)}
-        onSuccess={() => setIsOpen(false)} // Cerrar dropdown después de crear exitosamente
+        onSuccess={() => {
+          // Mantener el dropdown abierto después de crear exitosamente
+          setShowCreateTagModal(false);
+        }}
+      />
+
+      {/* Edit Tag Modal */}
+      <EditTagModal
+        open={showEditTagModal}
+        onClose={() => {
+          setShowEditTagModal(false);
+          setEditingTag(null);
+        }}
+        tagId={editingTag?.id || ""}
+        tagName={editingTag?.name || ""}
+        onSuccess={() => {
+          // Mantener el dropdown abierto después de editar exitosamente
+          setShowEditTagModal(false);
+          setEditingTag(null);
+        }}
       />
 
       {/* Delete Tag Modal */}

@@ -36,10 +36,10 @@ export default function ToasterProvider({ children }: { children: React.ReactNod
         {items.map((t) => (
           <div
             key={t.id}
-            className="w-80 rounded-lg border bg-white/90 backdrop-blur p-3 shadow-lg shadow-black/10 text-sm"
+            className="w-80 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 backdrop-blur p-3 shadow-lg shadow-black/10 dark:shadow-black/20 text-sm"
           >
-            {t.title && <div className="font-medium mb-1">{t.title}</div>}
-            <div className="text-gray-700">{t.message}</div>
+            {t.title && <div className="font-medium mb-1 text-slate-900 dark:text-white">{t.title}</div>}
+            <div className="text-gray-700 dark:text-slate-300">{t.message}</div>
           </div>
         ))}
       </div>

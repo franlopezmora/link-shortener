@@ -1,53 +1,72 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toaster";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/modals/Modal";
 import { Button, Input } from "@/components/common";
 
-interface CreateTagModalProps {
+interface EditTagModalProps {
   open: boolean;
   onClose: () => void;
+  tagId: string;
+  tagName: string;
   onSuccess?: () => void;
 }
 
-export default function CreateTagModal({ open, onClose, onSuccess }: CreateTagModalProps) {
-  const [tagName, setTagName] = useState("");
+export default function EditTagModal({ 
+  open, 
+  onClose, 
+  tagId, 
+  tagName, 
+  onSuccess 
+}: EditTagModalProps) {
+  const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
 
-  const handleCreate = async (e: React.FormEvent) => {
+  // Inicializar el nombre cuando se abre el modal
+  useEffect(() => {
+    if (open) {
+      setEditName(tagName);
+    }
+  }, [open, tagName]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!tagName.trim()) {
+    if (!editName.trim()) {
       toast("El nombre de la etiqueta es obligatorio", "Validación");
       return;
     }
 
-    if (tagName.trim().length > 15) {
+    if (editName.trim().length > 15) {
       toast("El nombre de la etiqueta no puede tener más de 15 caracteres", "Validación");
+      return;
+    }
+
+    if (editName.trim() === tagName) {
+      toast("No hay cambios para guardar", "Información");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await fetch("/api/tags", {
-        method: "POST",
+      const res = await fetch(`/api/tags/${tagId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: tagName.trim() }),
+        body: JSON.stringify({ name: editName.trim() }),
       });
 
       if (res.ok) {
-        setTagName("");
-        toast("Etiqueta creada", tagName);
+        toast("Etiqueta actualizada", editName);
         router.refresh();
         onClose();
         onSuccess?.(); // Llamar callback de éxito si existe
       } else if (res.status === 409) {
         toast("Esa etiqueta ya existe", "Conflicto");
       } else {
-        toast(await res.text() || "Error al crear etiqueta", "Error");
+        toast(await res.text() || "Error al actualizar etiqueta", "Error");
       }
     } catch (e: unknown) {
       const error = e as Error;
@@ -58,48 +77,44 @@ export default function CreateTagModal({ open, onClose, onSuccess }: CreateTagMo
   };
 
   const handleClose = () => {
-    setTagName("");
+    setEditName(tagName); // Resetear al valor original
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={handleClose} title="Crear nueva etiqueta">
-      <form onSubmit={handleCreate} className="space-y-3">
+    <Modal open={open} onClose={handleClose} title={`Editar "${tagName}" etiqueta`}>
+      <form onSubmit={handleSave} className="space-y-4">
         <div>
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Crea una nueva etiqueta para organizar tus links.
+            Modifica el nombre de la etiqueta. Los links asociados no se verán afectados.
           </p>
           
           <Input
             label="Nombre de la etiqueta:"
-            value={tagName}
-            onChange={setTagName}
+            value={editName}
+            onChange={setEditName}
             placeholder="ej: trabajo, personal (máx. 15 caracteres)"
             maxLength={15}
             autoFocus
           />
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 pt-4">
           <Button
             type="button"
             onClick={handleClose}
             variant="secondary"
+            disabled={loading}
           >
             Cancelar
           </Button>
           <Button
             type="submit"
-            disabled={loading || !tagName.trim() || tagName.trim().length > 15}
+            disabled={loading || !editName.trim() || editName.trim().length > 15 || editName.trim() === tagName}
             loading={loading}
             variant="primary"
           >
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Crear Etiqueta
-            </div>
+            {loading ? "Guardando..." : "Guardar"}
           </Button>
         </div>
       </form>

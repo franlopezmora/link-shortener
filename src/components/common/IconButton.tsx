@@ -19,13 +19,13 @@ export default function IconButton({
   title,
   children
 }: IconButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseClasses = "inline-flex items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none";
   
   const variantClasses = {
-    primary: "bg-blue-100 hover:bg-blue-200 disabled:bg-blue-50 text-blue-700 focus:ring-blue-500",
-    secondary: "bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 focus:ring-slate-500",
-    danger: "bg-red-100 hover:bg-red-200 disabled:bg-red-50 text-red-700 focus:ring-red-500",
-    ghost: "bg-transparent hover:bg-slate-100 disabled:bg-transparent text-slate-700 focus:ring-slate-500"
+    primary: "bg-blue-100 hover:bg-blue-200 disabled:bg-blue-50 text-blue-700",
+    secondary: "bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700",
+    danger: "bg-red-100 hover:bg-red-200 disabled:bg-red-50 text-red-700",
+    ghost: "bg-transparent hover:bg-slate-100 disabled:bg-transparent text-slate-700"
   };
   
   const sizeClasses = {

@@ -22,6 +22,27 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (open) {
+      // Calcular el ancho de la barra de scroll
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      // Aplicar padding para compensar la barra de scroll
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restaurar el padding y overflow
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   // Manejar clic fuera del modal
   useEffect(() => {
     const dialog = ref.current;
@@ -89,10 +110,10 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
   return (
     <dialog
       ref={ref}
-      className="rounded-xl p-0 backdrop:bg-black/40 border border-slate-200 dark:border-slate-700"
+      className="rounded-xl p-0 backdrop:bg-black/40 backdrop:modal-backdrop border border-slate-200 dark:border-slate-700"
       onClose={onClose}
     >
-      <div className="p-6 min-w-[32rem] max-w-[40rem] bg-white dark:bg-slate-800 rounded-xl overflow-y-auto scrollbar-thin">
+      <div className="p-6 min-w-[32rem] max-w-[40rem] bg-white dark:bg-slate-800 rounded-xl overflow-y-auto scrollbar-thin border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-slate-800 dark:text-white">{title}</h3>
           <button 
@@ -139,7 +160,7 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
               />
               <button
                 onClick={handleCopyUrl}
-                className="px-3 py-2 bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-200 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-1"
+                className="px-3 py-3 bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-200 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-1"
                 title="Copiar URL"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

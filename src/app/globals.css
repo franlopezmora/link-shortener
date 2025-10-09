@@ -43,3 +43,15 @@ dialog::backdrop {
 .dark .scrollbar-thin::-webkit-scrollbar-track {
   background-color: rgb(51 65 85);
 }
+
+/* Backdrop blur personalizado para modales */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Backdrop blur específico para dialog */
+dialog::backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

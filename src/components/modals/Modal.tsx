@@ -21,6 +21,27 @@ export default function Modal({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (open) {
+      // Calcular el ancho de la barra de scroll
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      // Aplicar padding para compensar la barra de scroll
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restaurar el padding y overflow
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   // Manejar click fuera del modal
   useEffect(() => {
     const dialog = ref.current;
@@ -52,10 +73,10 @@ export default function Modal({
   return (
     <dialog
       ref={ref}
-      className="rounded-xl p-0 backdrop:bg-black/40 border border-slate-200 dark:border-slate-700"
+      className="rounded-xl p-0 backdrop:bg-black/40 backdrop:modal-backdrop border border-slate-200 dark:border-slate-700 top-[15%]"
       onClose={onClose}
     >
-             <div className="p-4 min-w-[34rem] max-w-[50rem] min-h-[10rem] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl scrollbar-thin">
+             <div className="p-4 min-w-[34rem] max-w-[50rem] min-h-[10rem] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl scrollbar-thin border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
           <button onClick={onClose} className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200" title="Cerrar">

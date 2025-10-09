@@ -8,6 +8,7 @@ interface InputProps {
   disabled?: boolean;
   className?: string;
   autoFocus?: boolean;
+  maxLength?: number;
 }
 
 export default function Input({
@@ -19,7 +20,8 @@ export default function Input({
   type = "text",
   disabled = false,
   className = "",
-  autoFocus = false
+  autoFocus = false,
+  maxLength
 }: InputProps) {
   const inputClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${
     error ? "border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20" : "border-slate-300 dark:border-slate-600"
@@ -39,6 +41,7 @@ export default function Input({
         placeholder={placeholder}
         disabled={disabled}
         autoFocus={autoFocus}
+        maxLength={maxLength}
         className={inputClasses}
       />
       {error && (

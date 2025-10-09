@@ -9,6 +9,27 @@ interface DocsModalProps {
 export default function DocsModal({ open, onClose }: DocsModalProps) {
   const ref = useRef<HTMLDivElement>(null);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (open) {
+      // Calcular el ancho de la barra de scroll
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      // Aplicar padding para compensar la barra de scroll
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restaurar el padding y overflow
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   // Cerrar al clickear afuera
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -22,7 +43,7 @@ export default function DocsModal({ open, onClose }: DocsModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 p-4">
       <div 
         ref={ref}
         className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-700"

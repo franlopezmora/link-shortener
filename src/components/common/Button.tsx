@@ -19,13 +19,13 @@ export default function Button({
   className = "",
   type = "button"
 }: ButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 focus:outline-none";
   
   const variantClasses = {
-    primary: "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-blue-700",
-    secondary: "bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 focus:ring-slate-500 dark:bg-slate-700 dark:hover:bg-slate-600 dark:disabled:bg-slate-800 dark:text-slate-200",
-    danger: "bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-600 dark:disabled:bg-red-700",
-    ghost: "bg-transparent hover:bg-slate-100 disabled:bg-transparent text-slate-700 focus:ring-slate-500 dark:hover:bg-slate-700 dark:text-slate-200"
+    primary: "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-blue-700",
+    secondary: "bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:disabled:bg-slate-800 dark:text-slate-200",
+    danger: "bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white dark:bg-red-500 dark:hover:bg-red-600 dark:disabled:bg-red-700",
+    ghost: "bg-transparent hover:bg-slate-100 disabled:bg-transparent text-slate-700 dark:hover:bg-slate-700 dark:text-slate-200"
   };
   
   const sizeClasses = {
