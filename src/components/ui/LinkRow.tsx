@@ -16,14 +16,9 @@ type Props = {
   visits?: number | null; 
   expiresAt?: Date | null;
   description?: string | null;
-  tags?: {
-    id: string;
-    name: string;
-    color?: string | null;
-  }[];
 };
 
-export default function LinkRow({ id, slug, url, visits = 0, expiresAt, description, tags = [] }: Props) {
+export default function LinkRow({ id, slug, url, visits = 0, expiresAt, description }: Props) {
   const [editing, setEditing] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -132,23 +127,7 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt, descript
               </div>
             )}
             
-            {/* Etiquetas */}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-full"
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: tag.color || "#6366f1" }}
-                    />
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Sección de etiquetas removida */}
           </div>
         </div>
 

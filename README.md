@@ -10,7 +10,11 @@ Un acortador de enlaces moderno y rápido construido con Next.js 15, NextAuth, P
 - 📊 **Analytics**: Estadísticas de visitas en tiempo real
 - 📱 **Códigos QR**: Generación automática de códigos QR
 - 🎨 **Modal QR elegante**: Visualización moderna de códigos QR
+- 🌙 **Modo oscuro**: Tema claro/oscuro con persistencia por usuario
+- ⌨️ **Atajos de teclado**: Ctrl+K para comandos rápidos, Enter para acciones
 - 🔄 **Cron jobs**: Actualización automática de contadores
+- 📝 **Descripciones**: Agrega descripciones a tus enlaces
+- 🎯 **Interfaz intuitiva**: Diseño moderno y responsive
 
 ## 🛠️ Tecnologías
 
@@ -98,9 +102,12 @@ npm run lint         # Linter
 
 1. **Inicia sesión** con Google o GitHub
 2. **Crea enlaces** cortos con slugs personalizados
-3. **Configura expiración** opcional para tus enlaces
-4. **Visualiza estadísticas** de visitas
-5. **Descarga códigos QR** para compartir
+3. **Agrega descripciones** opcionales a tus enlaces
+4. **Configura expiración** opcional para tus enlaces
+5. **Visualiza estadísticas** de visitas en tiempo real
+6. **Genera códigos QR** para compartir fácilmente
+7. **Usa atajos de teclado**: Ctrl+K para comandos rápidos
+8. **Cambia el tema**: Modo claro/oscuro según tu preferencia
 
 ## 🔧 Configuración OAuth
 

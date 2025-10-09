@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import LinkRow from "@/components/ui/LinkRow";
 import CreateLinkModal from "@/components/modals/CreateLinkModal";
-import TagsManager from "@/components/ui/TagsManager";
+// TagsManager removido
 import SearchLinks from "@/components/ui/SearchLinks";
 import CommandModal from "@/components/modals/CommandModal";
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
@@ -16,24 +16,10 @@ interface Link {
   visits?: number | null;
   expiresAt?: Date | null;
   description?: string | null;
-  linkTags: {
-    tag: {
-      id: string;
-      name: string;
-      color?: string | null;
-    };
-  }[];
-}
-
-interface Tag {
-  id: string;
-  name: string;
-  color?: string;
 }
 
 interface DashboardClientProps {
   links: Link[];
-  tags: Tag[];
   totalLinks: number;
   totalVisits: number;
   activeLinks: number;
@@ -41,7 +27,6 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ 
   links, 
-  tags,
   totalLinks, 
   totalVisits, 
   activeLinks 
@@ -140,7 +125,6 @@ export default function DashboardClient({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Crear nuevo link</h2>
           <div className="flex items-center gap-3">
-            <TagsManager tags={tags} />
             {totalLinks < 10 && (
               <Button
                 onClick={() => setShowCreateModal(true)}
@@ -227,7 +211,6 @@ export default function DashboardClient({
                 visits={l.visits} 
                 expiresAt={l.expiresAt}
                 description={l.description}
-                tags={l.linkTags.map(lt => lt.tag)}
               />
             ))}
           </div>
@@ -256,7 +239,6 @@ export default function DashboardClient({
       <CreateLinkModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        tags={tags}
       />
     </div>
   );

@@ -9,6 +9,9 @@ El proyecto está **listo para producción** con las siguientes mejoras implemen
 - ✅ **Compatibilidad Next.js 15**: Todos los route handlers actualizados con `await params`
 - ✅ **Debug deshabilitado en producción**: Solo se activa en desarrollo
 - ✅ **Sin errores de linting**: Código limpio y validado
+- ✅ **Modo oscuro**: Tema claro/oscuro con persistencia por usuario
+- ✅ **Atajos de teclado**: Ctrl+K para comandos, Enter para acciones
+- ✅ **Interfaz simplificada**: Sistema de etiquetas removido para mayor estabilidad
 
 ### 🔧 **Correcciones Realizadas**
 - ✅ Error de `src` vacío en QRModal corregido

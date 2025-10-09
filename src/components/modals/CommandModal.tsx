@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Modal from "./Modal";
-import { Input, Button } from "@/components/common";
+import { Input } from "@/components/common";
 import { SearchIcon, PlusIcon, LinkIcon } from "@/components/icons";
 
 interface Command {
@@ -75,7 +75,7 @@ export default function CommandModal({
     link.url.toLowerCase().includes(query.toLowerCase())
   ).slice(0, 5); // Limitar a 5 resultados
 
-  const allResults = [...filteredCommands, ...filteredLinks.map(link => ({
+  const allResults = useMemo(() => [...filteredCommands, ...filteredLinks.map(link => ({
     id: `link-${link.id}`,
     title: `/${link.slug}`,
     description: link.url,
@@ -87,7 +87,7 @@ export default function CommandModal({
       onClose();
     },
     keywords: []
-  }))];
+  }))], [filteredCommands, filteredLinks, onClose]);
 
   // Manejar navegación con teclado
   useEffect(() => {

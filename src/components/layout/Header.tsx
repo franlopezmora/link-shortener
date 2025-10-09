@@ -9,6 +9,7 @@ import { useUserTheme } from "@/hooks/useUserTheme";
 
 export default function Header() {
   const { data: session } = useSession();
+  // session is used for conditional rendering in the component
   const [showDocs, setShowDocs] = useState(false);
   const [showAPI, setShowAPI] = useState(false);
   const { isDark, toggleTheme, isLoading } = useUserTheme();

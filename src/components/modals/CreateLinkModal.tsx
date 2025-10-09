@@ -5,31 +5,23 @@ import { isValidSlug, isValidUrl } from "@/lib/validation/validators";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/modals/Modal";
 import { Button, Input } from "@/components/common";
-import { CloseIcon, PlusIcon } from "@/components/icons";
-import MultiTagSelector from "@/components/ui/MultiTagSelector";
-import CreateTagModal from "@/components/modals/CreateTagModal";
-
-interface Tag {
-  id: string;
-  name: string;
-  color?: string;
-}
+// Icons imported but not used in current implementation
+// Etiquetas removidas
 
 interface CreateLinkModalProps {
   open: boolean;
   onClose: () => void;
-  tags?: Tag[];
 }
 
-export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLinkModalProps) {
+export default function CreateLinkModal({ open, onClose }: CreateLinkModalProps) {
   const [slug, setSlug] = useState("");
-  const [url, setUrl] = useState("https://");
+  const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [showCreateTagModal, setShowCreateTagModal] = useState(false);
+  // Etiquetas removidas
   const [touchedSlug, setTouchedSlug] = useState(false);
   const [touchedUrl, setTouchedUrl] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [urlFocused, setUrlFocused] = useState(false);
   const toast = useToast();
   const router = useRouter();
 
@@ -69,17 +61,15 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
         body: JSON.stringify({ 
           slug, 
           url, 
-          description: description.trim() || undefined,
-          tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
+          description: description.trim() || undefined
         }),
       });
 
       if (res.ok) {
         // Resetear formulario
         setSlug("");
-        setUrl("https://");
+        setUrl("");
         setDescription("");
-        setSelectedTagIds([]);
         setTouchedSlug(false);
         setTouchedUrl(false);
         toast("Link creado", `/${slug}`);
@@ -103,42 +93,14 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
   const handleClose = () => {
     // Resetear formulario al cerrar
     setSlug("");
-    setUrl("https://");
+    setUrl("");
     setDescription("");
-    setSelectedTagIds([]);
     setTouchedSlug(false);
     setTouchedUrl(false);
     onClose();
   };
 
-  const handleCreateTagWithName = async (tagName: string) => {
-    if (!tagName.trim()) return;
-    
-    if (tagName.trim().length > 15) {
-      toast("El nombre de la etiqueta no puede tener más de 15 caracteres", "Validación");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/tags", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: tagName.trim() }),
-      });
-
-      if (res.ok) {
-        toast("Etiqueta creada", tagName);
-        router.refresh();
-      } else if (res.status === 409) {
-        toast("Esa etiqueta ya existe", "Conflicto");
-      } else {
-        toast(await res.text() || "Error al crear etiqueta", "Error");
-      }
-    } catch (e: unknown) {
-      const error = e as Error;
-      toast(error.message ?? "Error inesperado", "Error");
-    }
-  };
+  // Función de crear etiquetas removida
 
   return (
     <Modal open={open} onClose={handleClose} title="Crear nuevo link">
@@ -149,9 +111,11 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
             label="URL de destino:"
             value={url}
             onChange={setUrl}
-            placeholder="https://"
+            placeholder= "https://"
             error={urlErr}
             type="url"
+            onFocus={() => setUrlFocused(true)}
+            onBlur={() => setUrlFocused(false)}
           />
         </div>
 
@@ -172,7 +136,7 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
               type="button"
               onClick={generateRandomSlug}
               variant="secondary"
-              className="px-4 py-2"
+              className="px-4 py-2 h-10"
             >
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,19 +162,7 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
                  />
         </div>
 
-        {/* Etiquetas */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-            Etiquetas (opcional):
-          </label>
-          <MultiTagSelector
-            tags={tags}
-            selectedTagIds={selectedTagIds}
-            onTagSelect={setSelectedTagIds}
-            onCreateTag={() => setShowCreateTagModal(true)}
-            onCreateTagWithName={handleCreateTagWithName}
-          />
-        </div>
+        {/* Sección de etiquetas removida */}
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-8 mt-8">
@@ -237,11 +189,6 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
         </div>
       </form>
 
-      {/* Create Tag Modal */}
-      <CreateTagModal
-        open={showCreateTagModal}
-        onClose={() => setShowCreateTagModal(false)}
-      />
     </Modal>
   );
 }
