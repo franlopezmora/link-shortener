@@ -1,9 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import QRModal from "./QRModal";
+import { usePathname } from "next/navigation";
+import QRModal from "@/components/modals/QRModal";
+import { useToast } from "@/components/ui/Toaster";
 
 function initialsOf(name?: string, email?: string) {
   if (name?.trim()) {
@@ -15,6 +17,8 @@ function initialsOf(name?: string, email?: string) {
 
 export default function UserMenu() {
   const { data: session, status } = useSession(); // "loading" | "authenticated" | "unauthenticated"
+  const pathname = usePathname();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -30,26 +34,23 @@ export default function UserMenu() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
+  // Ocultar completamente el componente en la página de login
+  if (pathname === "/login") {
+    return null;
+  }
+
   if (status === "loading") {
     return <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />;
   }
 
   if (status === "unauthenticated") {
     return (
-      <div className="flex gap-2">
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          className="px-3 py-1 rounded border border-slate-300 hover:bg-slate-50 transition-colors duration-200 text-sm font-medium"
-        >
-          Google
-        </button>
-        <button
-          onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
-          className="px-3 py-1 rounded border border-slate-300 hover:bg-slate-50 transition-colors duration-200 text-sm font-medium"
-        >
-          GitHub
-        </button>
-      </div>
+      <Link
+        href="/login"
+        className="px-3 py-2 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium flex items-center justify-center"
+      >
+        Iniciar sesión
+      </Link>
     );
   }
 
@@ -60,7 +61,7 @@ export default function UserMenu() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 hover:bg-slate-50 rounded-lg p-1 transition-colors duration-200"
+        className="flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg p-1 transition-colors duration-200"
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -75,12 +76,12 @@ export default function UserMenu() {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-8 h-8 rounded-full grid place-items-center bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700">
+          <div className="w-8 h-8 rounded-full grid place-items-center bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-white">
             {fallback}
           </div>
         )}
-        <span className="hidden sm:inline text-sm font-medium text-slate-700">{user.name ?? user.email}</span>
-        <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="hidden sm:inline text-sm font-medium text-slate-700 dark:text-white">{user.name ?? user.email}</span>
+        <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -88,16 +89,16 @@ export default function UserMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg p-2 z-50"
+          className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-2 z-50"
         >
           <div className="px-3 py-2">
-            <div className="text-sm font-medium truncate text-slate-900">{user.name ?? "Usuario"}</div>
-            <div className="text-xs text-slate-500 truncate">{user.email}</div>
+            <div className="text-sm font-medium truncate text-slate-900 dark:text-white">{user.name ?? "Usuario"}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</div>
           </div>
-          <div className="my-2 h-px bg-slate-100" />
+          <div className="my-2 h-px bg-slate-100 dark:bg-slate-700" />
           <Link
             href="/dashboard"
-            className="block px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors duration-200"
+            className="block px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 transition-colors duration-200"
             role="menuitem"
             onClick={() => setOpen(false)}
           >
@@ -110,12 +111,18 @@ export default function UserMenu() {
             </div>
           </Link>
           <button
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors duration-200"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 transition-colors duration-200"
             role="menuitem"
             onClick={async () => {
-              const origin = window.location.origin;
-              await navigator.clipboard.writeText(origin);
-              setOpen(false);
+              try {
+                const origin = window.location.origin;
+                await navigator.clipboard.writeText(origin);
+                toast("Dominio copiado", origin);
+                setOpen(false);
+              } catch (err) {
+                console.error('Error al copiar dominio:', err);
+                toast("Error al copiar", "Error");
+              }
             }}
           >
             <div className="flex items-center gap-2">
@@ -126,7 +133,7 @@ export default function UserMenu() {
             </div>
           </button>
           <button
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors duration-200"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 transition-colors duration-200"
             role="menuitem"
             onClick={() => {
               setShowQR(true);
@@ -140,10 +147,10 @@ export default function UserMenu() {
               Ejemplo QR
             </div>
           </button>
-          <div className="my-2 h-px bg-slate-100" />
+          <div className="my-2 h-px bg-slate-100 dark:bg-slate-700" />
           <button
             onClick={() => { setOpen(false); signOut({ callbackUrl: "/login" }); }}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600 transition-colors duration-200"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 text-sm text-red-600 dark:text-red-400 transition-colors duration-200"
             role="menuitem"
           >
             <div className="flex items-center gap-2">

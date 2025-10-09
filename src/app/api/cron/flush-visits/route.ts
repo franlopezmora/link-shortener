@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { redis, K_VISITS_DIRTY } from "@/lib/redis";
+import { prisma } from "@/lib/database/prisma";
+import { redis, K_VISITS_DIRTY } from "@/lib/database/redis";
 
 export const maxDuration = 50;
 const BATCH = 500;

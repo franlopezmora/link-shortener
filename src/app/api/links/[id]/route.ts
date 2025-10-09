@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma"
+import { prisma } from "@/lib/database/prisma"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { isValidSlug, isValidUrl } from "@/lib/validators"
-import { redis, kSlug } from "@/lib/redis"
+import { authOptions } from "@/lib/auth/auth"
+import { isValidSlug, isValidUrl } from "@/lib/validation/validators"
+import { redis, kSlug } from "@/lib/database/redis"
 
 async function isOwner(id: string, email?: string | null) {
   if (!email) return false

@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { redis, kSlug } from "@/lib/redis";
+import { prisma } from "@/lib/database/prisma";
+import { redis, kSlug } from "@/lib/database/redis";
 import { NextResponse } from "next/server";
 
 function ttlFor(expiresAt?: Date | null) {

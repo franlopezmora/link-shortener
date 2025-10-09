@@ -1,6 +1,6 @@
 import "./globals.css";
 import Providers from "./providers";
-import Header from "./_components/Header";
+import Header from "@/components/layout/Header";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   description: "Acorta tus enlaces de forma rápida y segura",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-16x16.svg", sizes: "16x16", type: "image/svg+xml" },
       { url: "/favicon-32x32.svg", sizes: "32x32", type: "image/svg+xml" },
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <body className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white antialiased">
         <Providers>
           <Header />
           <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>

@@ -6,7 +6,7 @@ export const redis = new Redis({
 });
 
 // helpers (host único)
-export const BASE_HOST = process.env.NEXT_PUBLIC_BASE_HOST || "localhost:3000";
+export const BASE_HOST = process.env.NEXT_PUBLIC_BASE_HOST || process.env.VERCEL_URL || "link-shortener-flm.vercel.app";
 export const kSlug   = (slug: string) => `slug:${BASE_HOST}:${slug}`;
 export const kVisits = (slug: string)   => `visits:${BASE_HOST}:${slug}`;
 export const K_VISITS_DIRTY = "visits:dirty";

@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useToast } from "./Toaster";
-import { isValidSlug, isValidUrl } from "@/lib/validators";
+import { useToast } from "@/components/ui/Toaster";
+import { isValidSlug, isValidUrl } from "@/lib/validation/validators";
 import { useRouter } from "next/navigation";
 
 export default function CreateLinkForm() {
   const [slug, setSlug] = useState("");
   const [url, setUrl] = useState("");
-  const [expiresAt, setExpiresAt] = useState<string>("");
   const [touchedSlug, setTouchedSlug] = useState(false);
   const [touchedUrl, setTouchedUrl] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,26 +18,37 @@ export default function CreateLinkForm() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    setTouchedSlug(true);
-    setTouchedUrl(true);
-    if (!isValidSlug(slug) || !isValidUrl(url)) return;
+    
+    // Validar primero sin marcar como touched
+    const slugValid = isValidSlug(slug);
+    const urlValid = isValidUrl(url);
+    
+    // Solo marcar como touched si hay errores
+    if (!slugValid) setTouchedSlug(true);
+    if (!urlValid) setTouchedUrl(true);
+    
+    // Si hay errores, no continuar
+    if (!slugValid || !urlValid) return;
 
     setLoading(true);
     try {
       const res = await fetch("/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, url, expiresAt: expiresAt || null }),
+        body: JSON.stringify({ slug, url }),
       });
 
       if (res.ok) {
         setSlug("");
         setUrl("");
-        setExpiresAt("");
+        setTouchedSlug(false);
+        setTouchedUrl(false);
         toast("Link creado", `/${slug}`);
         router.refresh();
       } else if (res.status === 409) {
         toast("Ese slug ya está en uso", "Conflicto");
+      } else if (res.status === 403) {
+        toast("Límite alcanzado", "Máximo 10 links por usuario");
       } else {
         toast(await res.text() || "Error al crear", "Error");
       }
@@ -84,21 +94,6 @@ export default function CreateLinkForm() {
           />
           {slugErr && <p className="text-sm text-red-600 mt-2">{slugErr}</p>}
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Fecha de expiración (opcional)
-        </label>
-        <input
-          type="datetime-local"
-          value={expiresAt}
-          onChange={(e) => setExpiresAt(e.target.value)}
-          className="w-full px-4 py-3 border border-slate-300 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-slate-400"
-        />
-        <p className="text-sm text-slate-500 mt-2">
-          Deja vacío para que el link no expire nunca
-        </p>
       </div>
 
       <div className="flex justify-end">

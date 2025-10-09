@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
+  theme         String?   @default("light")
   accounts      Account[]
-  sessions      Session[]
   links         Link[]
+  sessions      Session[]
+  tags          Tag[]
 }
 
 model Account {
@@ -24,15 +26,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -42,8 +43,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -55,13 +55,37 @@ model VerificationToken {
 }
 
 model Link {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  url       String
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  visits    Int      @default(0)
-  createdAt DateTime @default(now())
-  lastVisit DateTime?
-  expiresAt DateTime?   // <— NUEVO
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  url         String
+  userId      String?
+  visits      Int       @default(0)
+  createdAt   DateTime  @default(now())
+  lastVisit   DateTime?
+  expiresAt   DateTime?
+  description String?
+  user        User?     @relation(fields: [userId], references: [id])
+  linkTags    LinkTag[]
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  color     String?
+  userId    String
+  createdAt DateTime  @default(now())
+  linkTags  LinkTag[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+}
+
+model LinkTag {
+  id     String @id @default(cuid())
+  linkId String
+  tagId  String
+  link   Link   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, tagId])
 }

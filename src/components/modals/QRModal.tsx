@@ -12,6 +12,7 @@ interface QRModalProps {
 export default function QRModal({ open, onClose, slug, title = "Código QR" }: QRModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const [qrUrl, setQrUrl] = useState<string>("");
+  const [realUrl, setRealUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -21,15 +22,49 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  // Manejar clic fuera del modal
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const rect = dialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width
+      );
+      
+      if (!isInDialog) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      dialog.addEventListener('click', handleClick);
+    }
+
+    return () => {
+      dialog.removeEventListener('click', handleClick);
+    };
+  }, [open, onClose]);
+
   useEffect(() => {
     if (open && slug) {
       setLoading(true);
-      const url = `/api/qr/${encodeURIComponent(slug)}.svg`;
-      setQrUrl(url);
+      const qrApiUrl = `/api/qr/${encodeURIComponent(slug)}.svg`;
+      // Usar la misma lógica que el servidor: protocol + host
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+      const linkUrl = slug === "demo" ? `${protocol}//${host}` : `${protocol}//${host}/${slug}`;
+      setQrUrl(qrApiUrl);
+      setRealUrl(linkUrl);
       // Simular un pequeño delay para mostrar el loading
       setTimeout(() => setLoading(false), 100);
     } else if (!open) {
       setQrUrl("");
+      setRealUrl("");
     }
   }, [open, slug]);
 
@@ -44,7 +79,7 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
 
   const handleCopyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(qrUrl);
+      await navigator.clipboard.writeText(realUrl);
       // Aquí podrías agregar un toast de confirmación
     } catch (err) {
       console.error('Error al copiar URL:', err);
@@ -54,15 +89,15 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
   return (
     <dialog
       ref={ref}
-      className="rounded-xl p-0 backdrop:bg-black/40"
+      className="rounded-xl p-0 backdrop:bg-black/40 border border-slate-200 dark:border-slate-700"
       onClose={onClose}
     >
-      <div className="p-6 min-w-[32rem] max-w-[40rem]">
+      <div className="p-6 min-w-[32rem] max-w-[40rem] bg-white dark:bg-slate-800 rounded-xl overflow-y-auto scrollbar-thin">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-slate-800">{title}</h3>
+          <h3 className="text-xl font-semibold text-slate-800 dark:text-white">{title}</h3>
           <button 
             onClick={onClose} 
-            className="text-slate-500 hover:text-slate-700 transition-colors duration-200"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-200"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -73,7 +108,7 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
         <div className="space-y-6">
           {/* QR Code Display */}
           <div className="flex justify-center">
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+            <div className="bg-white dark:bg-slate-700 p-6 rounded-xl shadow-lg border border-slate-200 dark:border-slate-600">
               {loading || !qrUrl ? (
                 <div className="w-64 h-64 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -91,20 +126,20 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
           </div>
 
           {/* URL Display */}
-          <div className="bg-slate-50 rounded-lg p-4">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              URL del código QR:
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              URL del enlace:
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={qrUrl}
+                value={realUrl}
                 readOnly
-                className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono text-slate-600"
+                className="flex-1 px-3 py-2 bg-white dark:bg-slate-600 border border-slate-300 dark:border-slate-500 rounded-lg text-sm font-mono text-slate-600 dark:text-slate-200"
               />
               <button
                 onClick={handleCopyUrl}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-1"
+                className="px-3 py-2 bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-200 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-1"
                 title="Copiar URL"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +163,7 @@ export default function QRModal({ open, onClose, slug, title = "Código QR" }: Q
             
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors duration-200 font-medium"
+              className="px-6 py-3 bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-200 rounded-lg transition-colors duration-200 font-medium"
             >
               Cerrar
             </button>
