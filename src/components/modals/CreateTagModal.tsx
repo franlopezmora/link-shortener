@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toaster";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/modals/Modal";
@@ -61,6 +61,24 @@ export default function CreateTagModal({ open, onClose, onSuccess }: CreateTagMo
     setTagName("");
     onClose();
   };
+
+  // Funcionalidad Enter para crear etiqueta
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (open && e.key === 'Enter' && !loading && tagName.trim() && tagName.trim().length <= 15) {
+        e.preventDefault();
+        handleCreate(e as any);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, loading, tagName, handleCreate]);
 
   return (
     <Modal open={open} onClose={handleClose} title="Crear nueva etiqueta">

@@ -167,11 +167,18 @@ export default function DashboardClient({
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="p-4 bg-blue-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <PlusIcon className="w-8 h-8 text-blue-600" />
+            <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <PlusIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Crea tu primer link</h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">Haz clic en el botón "Crear Link" para empezar</p>
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+              {links.length === 0 ? "Crea tu primer link" : "Crear nuevo link"}
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              {links.length === 0 
+                ? "Haz clic en el botón \"Crear Link\" para empezar" 
+                : "Haz clic en el botón \"Crear Link\" para agregar otro enlace"
+              }
+            </p>
           </div>
         )}
       </Card>

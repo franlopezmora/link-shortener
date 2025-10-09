@@ -81,6 +81,24 @@ export default function EditTagModal({
     onClose();
   };
 
+  // Funcionalidad Enter para editar etiqueta
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (open && e.key === 'Enter' && !loading && editName.trim() && editName.trim().length <= 15 && editName.trim() !== tagName) {
+        e.preventDefault();
+        handleSave(e as any);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, loading, editName, tagName, handleSave]);
+
   return (
     <Modal open={open} onClose={handleClose} title={`Editar "${tagName}" etiqueta`}>
       <form onSubmit={handleSave} className="space-y-4">

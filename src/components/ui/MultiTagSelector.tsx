@@ -13,13 +13,15 @@ interface MultiTagSelectorProps {
   selectedTagIds: string[];
   onTagSelect: (tagIds: string[]) => void;
   onCreateTag: () => void;
+  onCreateTagWithName?: (name: string) => void;
 }
 
 export default function MultiTagSelector({ 
   tags, 
   selectedTagIds, 
   onTagSelect, 
-  onCreateTag 
+  onCreateTag,
+  onCreateTagWithName
 }: MultiTagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,6 +64,34 @@ export default function MultiTagSelector({
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      e.preventDefault();
+      
+      // Verificar si ya existe una etiqueta con ese nombre
+      const existingTag = tags.find(tag => 
+        tag.name.toLowerCase() === searchQuery.trim().toLowerCase()
+      );
+      
+      if (existingTag) {
+        // Si existe, seleccionarla
+        handleTagToggle(existingTag.id);
+        setSearchQuery("");
+        setIsOpen(false);
+      } else if (onCreateTagWithName) {
+        // Si no existe y tenemos la función, crear la etiqueta
+        onCreateTagWithName(searchQuery.trim());
+        setSearchQuery("");
+        setIsOpen(false);
+      } else {
+        // Fallback al modal de crear etiqueta
+        onCreateTag();
+        setIsOpen(false);
+        setSearchQuery("");
+      }
+    }
+  };
+
   return (
     <div className="relative mt-4" ref={dropdownRef}>
       {/* Campo de entrada principal */}
@@ -70,8 +100,9 @@ export default function MultiTagSelector({
                  type="text"
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
+                 onKeyDown={handleKeyDown}
                  onFocus={() => setIsOpen(true)}
-                 placeholder="Seleccionar una etiqueta"
+                 placeholder="Seleccionar una etiqueta (Enter para crear nueva)"
                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                />
         <button

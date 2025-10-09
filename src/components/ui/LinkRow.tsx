@@ -278,6 +278,12 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt, descript
               type="text"
               value={deleteConfirmSlug}
               onChange={(e) => setDeleteConfirmSlug(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !loading && deleteConfirmSlug === slug) {
+                  e.preventDefault();
+                  handleDelete();
+                }
+              }}
               autoFocus
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
             />

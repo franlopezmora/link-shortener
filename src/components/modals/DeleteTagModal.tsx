@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import Modal from "@/components/modals/Modal";
 import { Button } from "@/components/common";
 
@@ -22,6 +23,24 @@ export default function DeleteTagModal({
     e.currentTarget.blur();
     onConfirm();
   };
+
+  // Funcionalidad Enter para eliminar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (open && e.key === 'Enter' && !loading) {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, loading, onConfirm]);
 
   return (
     <Modal open={open} onClose={onClose} title={`Eliminar "${tagName}" etiqueta`}>

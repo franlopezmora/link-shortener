@@ -7,7 +7,7 @@ import Modal from "@/components/modals/Modal";
 import { Button, Input } from "@/components/common";
 import { CloseIcon, PlusIcon } from "@/components/icons";
 import MultiTagSelector from "@/components/ui/MultiTagSelector";
-import CreateTagModal from "./CreateTagModal";
+import CreateTagModal from "@/components/modals/CreateTagModal";
 
 interface Tag {
   id: string;
@@ -111,6 +111,35 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
     onClose();
   };
 
+  const handleCreateTagWithName = async (tagName: string) => {
+    if (!tagName.trim()) return;
+    
+    if (tagName.trim().length > 15) {
+      toast("El nombre de la etiqueta no puede tener más de 15 caracteres", "Validación");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: tagName.trim() }),
+      });
+
+      if (res.ok) {
+        toast("Etiqueta creada", tagName);
+        router.refresh();
+      } else if (res.status === 409) {
+        toast("Esa etiqueta ya existe", "Conflicto");
+      } else {
+        toast(await res.text() || "Error al crear etiqueta", "Error");
+      }
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast(error.message ?? "Error inesperado", "Error");
+    }
+  };
+
   return (
     <Modal open={open} onClose={handleClose} title="Crear nuevo link">
       <form onSubmit={handleCreate} className="space-y-6">
@@ -179,6 +208,7 @@ export default function CreateLinkModal({ open, onClose, tags = [] }: CreateLink
             selectedTagIds={selectedTagIds}
             onTagSelect={setSelectedTagIds}
             onCreateTag={() => setShowCreateTagModal(true)}
+            onCreateTagWithName={handleCreateTagWithName}
           />
         </div>
 
