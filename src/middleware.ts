@@ -1,53 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
 
 export const config = {
   matcher: ["/((?!api|_next|favicon.ico|login|dashboard).*)"],
 };
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-const redis = redisUrl && redisToken
-  ? new Redis({ url: redisUrl, token: redisToken })
-  : null;
-
-const BASE_HOST = process.env.NEXT_PUBLIC_BASE_HOST || "localhost:3000";
-const K_VISITS_DIRTY = "visits:dirty";
-const kSlug   = (slug: string) => `slug:${BASE_HOST}:${slug}`;
-const kVisits = (slug: string) => `visits:${BASE_HOST}:${slug}`;
-
 export default async function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname.replace(/^\/+/, "");
-  if (!path) return NextResponse.next();
+  try {
+    const path = req.nextUrl.pathname.replace(/^\/+/, "");
+    if (!path) return NextResponse.next();
 
-  // 1) Intentar cache
-  const cached = redis
-    ? await redis.get<{ url?: string; exp?: number }>(kSlug(path))
-    : null;
-  const now = Date.now();
-
-  if (cached?.url && (!cached.exp || cached.exp > now)) {
-    // Contar visita (no bloqueante) y marcar dirty
-    const vKey = kVisits(path);
-    if (redis) {
-      redis.incr(vKey).catch(() => {});
-      redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
-    }
-    return NextResponse.redirect(cached.url, 301);
-  }
-
-  // 2) Resolver en API (cachea y devuelve)
-  const r = await fetch(new URL(`/api/r/${encodeURIComponent(path)}`, req.url));
-  if (r.ok) {
-    const { url } = (await r.json()) as { url?: string };
-    if (url) {
-      const vKey = kVisits(path);
-      if (redis) {
-        redis.incr(vKey).catch(() => {});
-        redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
+    const r = await fetch(new URL(`/api/r/${encodeURIComponent(path)}`, req.url));
+    if (r.ok) {
+      const { url } = (await r.json()) as { url?: string };
+      if (url) {
+        return NextResponse.redirect(url, 301);
       }
-      return NextResponse.redirect(url, 301);
     }
+
+    return NextResponse.next();
+  } catch {
+    // Never break public link resolution because of middleware runtime issues.
+    return NextResponse.next();
   }
-  return NextResponse.next();
 }
