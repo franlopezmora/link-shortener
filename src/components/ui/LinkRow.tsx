@@ -14,11 +14,20 @@ type Props = {
   slug: string; 
   url: string; 
   visits?: number | null; 
-  expiresAt?: Date | null;
+  expiresAt?: Date | string | null;
   description?: string | null;
+  onUpdated?: (link: {
+    id: string;
+    slug: string;
+    url: string;
+    visits?: number | null;
+    expiresAt?: string | Date | null;
+    description?: string | null;
+  }) => void;
+  onDeleted?: (id: string) => void;
 };
 
-export default function LinkRow({ id, slug, url, visits = 0, expiresAt, description }: Props) {
+export default function LinkRow({ id, slug, url, visits = 0, expiresAt, description, onUpdated, onDeleted }: Props) {
   const [editing, setEditing] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -39,6 +48,7 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt, descript
       toast("Link eliminado", "Listo");
       setShowDelete(false);
       setDeleteConfirmSlug("");
+      onDeleted?.(id);
       router.refresh();
     } catch (e: unknown) {
       const error = e as Error;
@@ -65,8 +75,10 @@ export default function LinkRow({ id, slug, url, visits = 0, expiresAt, descript
       });
 
       if (res.ok) {
+        const updated = await res.json();
         toast("Cambios guardados", "Listo");
         setEditing(false);
+        onUpdated?.(updated);
         router.refresh();
       } else if (res.status === 409) {
         toast("Ese slug ya está en uso", "Conflicto");

@@ -11,9 +11,17 @@ import { Button, Input } from "@/components/common";
 interface CreateLinkModalProps {
   open: boolean;
   onClose: () => void;
+  onCreated?: (link: {
+    id: string;
+    slug: string;
+    url: string;
+    visits?: number | null;
+    expiresAt?: string | null;
+    description?: string | null;
+  }) => void;
 }
 
-export default function CreateLinkModal({ open, onClose }: CreateLinkModalProps) {
+export default function CreateLinkModal({ open, onClose, onCreated }: CreateLinkModalProps) {
   const [slug, setSlug] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -66,6 +74,7 @@ export default function CreateLinkModal({ open, onClose }: CreateLinkModalProps)
       });
 
       if (res.ok) {
+        const created = await res.json();
         // Resetear formulario
         setSlug("");
         setUrl("");
@@ -73,6 +82,7 @@ export default function CreateLinkModal({ open, onClose }: CreateLinkModalProps)
         setTouchedSlug(false);
         setTouchedUrl(false);
         toast("Link creado", `/${slug}`);
+        onCreated?.(created);
         router.refresh();
         onClose();
       } else if (res.status === 409) {

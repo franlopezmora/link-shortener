@@ -1,8 +1,8 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import LinkRow from "@/components/ui/LinkRow";
 import CreateLinkModal from "@/components/modals/CreateLinkModal";
-// TagsManager removido
 import SearchLinks from "@/components/ui/SearchLinks";
 import CommandModal from "@/components/modals/CommandModal";
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
@@ -14,7 +14,7 @@ interface Link {
   slug: string;
   url: string;
   visits?: number | null;
-  expiresAt?: Date | null;
+  expiresAt?: Date | string | null;
   description?: string | null;
 }
 
@@ -25,26 +25,37 @@ interface DashboardClientProps {
   activeLinks: number;
 }
 
-export default function DashboardClient({ 
-  links, 
-  totalLinks, 
-  totalVisits, 
-  activeLinks 
+export default function DashboardClient({
+  links,
+  totalLinks: _totalLinks,
+  totalVisits: _totalVisits,
+  activeLinks: _activeLinks,
 }: DashboardClientProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCommandModal, setShowCommandModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [localLinks, setLocalLinks] = useState<Link[]>(links);
 
-  // Filtrar links basado en la búsqueda
+  useEffect(() => {
+    setLocalLinks(links);
+  }, [links]);
+
+  const totalLinks = localLinks.length;
+  const totalVisits = localLinks.reduce((sum, link) => sum + (link.visits || 0), 0);
+  const activeLinks = localLinks.filter((link) => {
+    if (!link.expiresAt) return true;
+    return new Date(link.expiresAt).getTime() > Date.now();
+  }).length;
+
   const filteredLinks = useMemo(() => {
-    if (!searchQuery.trim()) return links;
-    
+    if (!searchQuery.trim()) return localLinks;
+
     const query = searchQuery.toLowerCase();
-    return links.filter(link => 
-      link.slug.toLowerCase().includes(query) ||
-      link.url.toLowerCase().includes(query)
+    return localLinks.filter(
+      (link) => link.slug.toLowerCase().includes(query) || link.url.toLowerCase().includes(query)
     );
-  }, [links, searchQuery]);
+  }, [localLinks, searchQuery]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -54,14 +65,27 @@ export default function DashboardClient({
     setShowCreateModal(true);
   };
 
-  // Hook para Ctrl + K
+  const handleCreated = (created: Link) => {
+    setLocalLinks((prev) => [created, ...prev]);
+    router.refresh();
+  };
+
+  const handleUpdated = (updated: Link) => {
+    setLocalLinks((prev) => prev.map((link) => (link.id === updated.id ? { ...link, ...updated } : link)));
+    router.refresh();
+  };
+
+  const handleDeleted = (id: string) => {
+    setLocalLinks((prev) => prev.filter((link) => link.id !== id));
+    router.refresh();
+  };
+
   useKeyboardShortcut("k", () => {
     setShowCommandModal(true);
   });
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <Card className="p-6 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Tus links</h1>
@@ -69,7 +93,6 @@ export default function DashboardClient({
         </div>
       </Card>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="p-6 h-full">
           <div className="flex items-center h-full">
@@ -80,21 +103,18 @@ export default function DashboardClient({
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Links</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalLinks}/10</p>
               <div className="mt-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                <div 
+                <div
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    totalLinks >= 10 ? 'bg-red-500' : 
-                    totalLinks >= 8 ? 'bg-yellow-500' : 'bg-blue-500'
+                    totalLinks >= 10 ? "bg-red-500" : totalLinks >= 8 ? "bg-yellow-500" : "bg-blue-500"
                   }`}
                   style={{ width: `${(totalLinks / 10) * 100}%` }}
                 ></div>
               </div>
-              {totalLinks >= 10 && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">Límite alcanzado</p>
-              )}
+              {totalLinks >= 10 && <p className="text-xs text-red-600 dark:text-red-400 mt-1">Limite alcanzado</p>}
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-6 h-full">
           <div className="flex items-center h-full">
             <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
@@ -120,16 +140,12 @@ export default function DashboardClient({
         </Card>
       </div>
 
-      {/* Create Link Section */}
       <Card className="p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Crear nuevo link</h2>
           <div className="flex items-center gap-3">
             {totalLinks < 10 && (
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                variant="primary"
-              >
+              <Button onClick={() => setShowCreateModal(true)} variant="primary">
                 <div className="flex items-center gap-2">
                   <PlusIcon className="w-4 h-4" />
                   Crear Link
@@ -138,16 +154,21 @@ export default function DashboardClient({
             )}
           </div>
         </div>
-        
+
         {totalLinks >= 10 ? (
           <div className="text-center py-8">
             <div className="p-4 bg-red-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Límite de links alcanzado</h3>
-            <p className="text-slate-600 dark:text-slate-400">Has alcanzado el máximo de 10 links. Elimina algunos para crear nuevos.</p>
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Limite de links alcanzado</h3>
+            <p className="text-slate-600 dark:text-slate-400">Has alcanzado el maximo de 10 links. Elimina algunos para crear nuevos.</p>
           </div>
         ) : (
           <div className="text-center py-8">
@@ -155,91 +176,93 @@ export default function DashboardClient({
               <PlusIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-              {links.length === 0 ? "Crea tu primer link" : "Crear nuevo link"}
+              {localLinks.length === 0 ? "Crea tu primer link" : "Crear nuevo link"}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              {links.length === 0 
-                ? "Haz clic en el botón \"Crear Link\" para empezar" 
-                : "Haz clic en el botón \"Crear Link\" para agregar otro enlace"
-              }
+              {localLinks.length === 0
+                ? 'Haz clic en el boton "Crear Link" para empezar'
+                : 'Haz clic en el boton "Crear Link" para agregar otro enlace'}
             </p>
           </div>
         )}
       </Card>
 
-      {/* Links List */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Mis links
-          </h2>
-          {links.length > 0 && (
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Mis links</h2>
+          {localLinks.length > 0 && (
             <div className="w-80">
               <SearchLinks onSearch={handleSearch} />
             </div>
           )}
         </div>
 
-        {links.length === 0 ? (
+        {localLinks.length === 0 ? (
           <div className="text-center py-12">
             <div className="p-4 bg-slate-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No tienes links aún</h3>
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No tienes links aun</h3>
             <p className="text-slate-600 dark:text-slate-400">Crea tu primer link acortado usando el formulario de arriba</p>
           </div>
         ) : filteredLinks.length === 0 ? (
           <div className="text-center py-12">
             <div className="p-4 bg-slate-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No se encontraron links</h3>
-            <p className="text-slate-600 dark:text-slate-400">Intenta con otros términos de búsqueda</p>
+            <p className="text-slate-600 dark:text-slate-400">Intenta con otros terminos de busqueda</p>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredLinks.map((l) => (
-              <LinkRow 
-                key={l.id} 
-                id={l.id} 
-                slug={l.slug} 
-                url={l.url} 
-                visits={l.visits} 
+              <LinkRow
+                key={l.id}
+                id={l.id}
+                slug={l.slug}
+                url={l.url}
+                visits={l.visits}
                 expiresAt={l.expiresAt}
                 description={l.description}
+                onUpdated={handleUpdated}
+                onDeleted={handleDeleted}
               />
             ))}
           </div>
         )}
 
-        {/* Mostrar contador de resultados */}
         {searchQuery && filteredLinks.length > 0 && (
           <div className="mt-6 pt-4 border-t border-slate-200">
             <p className="text-sm text-slate-600">
-              Mostrando {filteredLinks.length} de {links.length} links
+              Mostrando {filteredLinks.length} de {localLinks.length} links
             </p>
           </div>
         )}
       </Card>
 
-      {/* Command Modal */}
       <CommandModal
         open={showCommandModal}
         onClose={() => setShowCommandModal(false)}
-        links={links}
+        links={localLinks}
         onCreateLink={handleCreateLink}
         onSearch={handleSearch}
       />
 
-      {/* Create Link Modal */}
-      <CreateLinkModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-      />
+      <CreateLinkModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
     </div>
   );
 }
