@@ -16,7 +16,10 @@ export default async function Dashboard() {
 
   const linksWithLiveVisits = await Promise.all(
     links.map(async (link: any) => {
-      const pending = Number(await redis.get(kVisits(link.slug))) || 0;
+      const pending = await redis
+        .get<number | string | null>(kVisits(link.slug))
+        .then((value) => Number(value) || 0)
+        .catch(() => 0);
       return { ...link, visits: (link.visits ?? 0) + pending };
     })
   );
