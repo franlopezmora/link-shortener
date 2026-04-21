@@ -5,10 +5,11 @@ export const config = {
   matcher: ["/((?!api|_next|favicon.ico|login|dashboard).*)"],
 };
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const redis = redisUrl && redisToken
+  ? new Redis({ url: redisUrl, token: redisToken })
+  : null;
 
 const BASE_HOST = process.env.NEXT_PUBLIC_BASE_HOST || "localhost:3000";
 const K_VISITS_DIRTY = "visits:dirty";
@@ -20,14 +21,18 @@ export default async function middleware(req: NextRequest) {
   if (!path) return NextResponse.next();
 
   // 1) Intentar cache
-  const cached = await redis.get<{ url?: string; exp?: number }>(kSlug(path));
+  const cached = redis
+    ? await redis.get<{ url?: string; exp?: number }>(kSlug(path))
+    : null;
   const now = Date.now();
 
   if (cached?.url && (!cached.exp || cached.exp > now)) {
     // Contar visita (no bloqueante) y marcar dirty
     const vKey = kVisits(path);
-    redis.incr(vKey).catch(() => {});
-    redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
+    if (redis) {
+      redis.incr(vKey).catch(() => {});
+      redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
+    }
     return NextResponse.redirect(cached.url, 301);
   }
 
@@ -37,8 +42,10 @@ export default async function middleware(req: NextRequest) {
     const { url } = (await r.json()) as { url?: string };
     if (url) {
       const vKey = kVisits(path);
-      redis.incr(vKey).catch(() => {});
-      redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
+      if (redis) {
+        redis.incr(vKey).catch(() => {});
+        redis.sadd(K_VISITS_DIRTY, vKey).catch(() => {});
+      }
       return NextResponse.redirect(url, 301);
     }
   }
