@@ -16,12 +16,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
   if (!link) return NextResponse.json({ url: null }, { status: 404 });
 
   if (link.expiresAt && link.expiresAt.getTime() <= Date.now()) {
-    await redis.set(kSlug(slug), { url: null, exp: Date.now() - 1 }, { ex: 60 });
+    await redis
+      .set(kSlug(slug), { url: null, exp: Date.now() - 1 }, { ex: 60 })
+      .catch(() => {});
     return new NextResponse("Expired", { status: 410 });
   }
 
   const payload = { url: link.url, exp: link.expiresAt?.getTime() };
-  await redis.set(kSlug(slug), payload, { ex: ttlFor(link.expiresAt) });
+  await redis
+    .set(kSlug(slug), payload, { ex: ttlFor(link.expiresAt) })
+    .catch(() => {});
 
   return NextResponse.json({ url: link.url }, { status: 200 });
 }
